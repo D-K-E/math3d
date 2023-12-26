@@ -43,15 +43,6 @@ MatNCell<T> make_matn_cell(const T &c, std::size_t i) {
   return cell;
 }
 
-template <typename T>
-MatNCell<T> make_matn_cell(
-    const std::tuple<T, std::size_t, std::size_t> &tpl) {
-  auto [c, row_param, col_param] = tpl;
-  MatNCell<T> cell{
-      .content = c, .row = row_param, .column = col_param};
-  return cell;
-}
-
 template <class T = float, std::size_t RowNb = 1,
           std::size_t ColNb = RowNb>
 class MatN {
@@ -178,44 +169,6 @@ public:
     out = mat;
     return OpResult(__LINE__, __FILE__, __FUNCTION__,
                     "identity", SUCCESS);
-  }
-  OpResult apply(const MatN<T, RowNb, ColNb> &vmat,
-                 const std::function<T(T, T)> &fn,
-                 MatN<T, RowNb, ColNb> &out) const {
-    for (std::size_t i = 0; i < Size; i++) {
-      T tout = static_cast<T>(0);
-      vmat(i, tout); // getter
-      T val = fn(data[i], tout);
-      auto r = out(make_matn_cell<T>(val, i));
-      if (r.status != SUCCESS)
-        return r;
-    }
-
-    return OpResult(__LINE__, __FILE__, __FUNCTION__,
-                    "apply", SUCCESS);
-  }
-  OpResult apply(const std::function<T(T)> &fn,
-                 MatN<T, RowNb, ColNb> &out) const {
-    for (std::size_t i = 0; i < Size; i++) {
-      T val = fn(data[i]);
-      auto r = out(make_matn_cell<T>(val, i));
-      if (r.status != SUCCESS)
-        return r;
-    }
-    return OpResult(__LINE__, __FILE__, __FUNCTION__,
-                    "apply", SUCCESS);
-  }
-  OpResult apply(const T &v,
-                 const std::function<T(T, T)> &fn,
-                 MatN<T, RowNb, ColNb> &out) const {
-    for (std::size_t i = 0; i < Size; i++) {
-      T val = fn(data[i], v);
-      auto r = out(make_matn_cell<T>(val, i));
-      if (r.status != SUCCESS)
-        return r;
-    }
-    return OpResult(__LINE__, __FILE__, __FUNCTION__,
-                    "apply", SUCCESS);
   }
   // tested
   template <std::size_t OutRowNb = RowNb,
@@ -654,6 +607,48 @@ public:
     }
     return OpResult(__LINE__, __FILE__, __FUNCTION__,
                     "add_columns", SUCCESS);
+  }
+
+private:
+  template <typename Func>
+  OpResult apply(const MatN<T, RowNb, ColNb> &vmat,
+                 const Func &fn,
+                 MatN<T, RowNb, ColNb> &out) const {
+    for (std::size_t i = 0; i < Size; i++) {
+      T tout = static_cast<T>(0);
+      vmat(i, tout); // getter
+      T val = fn(data[i], tout);
+      auto r = out(make_matn_cell<T>(val, i));
+      if (r.status != SUCCESS)
+        return r;
+    }
+
+    return OpResult(__LINE__, __FILE__, __FUNCTION__,
+                    "apply", SUCCESS);
+  }
+  template <typename Func>
+  OpResult apply(const Func &fn,
+                 MatN<T, RowNb, ColNb> &out) const {
+    for (std::size_t i = 0; i < Size; i++) {
+      T val = fn(data[i]);
+      auto r = out(make_matn_cell<T>(val, i));
+      if (r.status != SUCCESS)
+        return r;
+    }
+    return OpResult(__LINE__, __FILE__, __FUNCTION__,
+                    "apply", SUCCESS);
+  }
+  template <typename Func>
+  OpResult apply(const T &v, const Func &fn,
+                 MatN<T, RowNb, ColNb> &out) const {
+    for (std::size_t i = 0; i < Size; i++) {
+      T val = fn(data[i], v);
+      auto r = out(make_matn_cell<T>(val, i));
+      if (r.status != SUCCESS)
+        return r;
+    }
+    return OpResult(__LINE__, __FILE__, __FUNCTION__,
+                    "apply", SUCCESS);
   }
 };
 

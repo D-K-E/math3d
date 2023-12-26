@@ -14,6 +14,8 @@ target_link_libraries(GTest::GTest INTERFACE gtest_main)
 
 add_executable(
     ${PROJECT_NAME}_Test
-    "test_matn.cpp")
+    "test_matn.cpp"
+    # "test_vecn.cpp"
+    )
 
 target_link_libraries(${PROJECT_NAME}_Test PRIVATE GTest::GTest ${PROJECT_NAME})

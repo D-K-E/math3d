@@ -1,7 +1,7 @@
 #ifndef VECN_HPP
 #define VECN_HPP
-#include <array>
 #include <cstdint>
+#include <cstring>
 #include <functional>
 #include <iostream>
 #include <math.h>
@@ -14,9 +14,20 @@
 namespace math3d {
 namespace vecn {
 
-template <class T, unsigned int N> class VecN {
+template <typename T> struct VecNCell {
+  T content;
+  std::size_t index = 0;
+};
+
+template <typename T>
+VecNCell<T> make_vecn_cell(const T &c, std::size_t i) {
+  VecNCell<T> cell{.content = c, .index = i};
+  return cell;
+}
+
+template <class T, std::size_t N> class VecN {
   /** holds the vector data*/
-  std::array<T, N> data;
+  T data[N];
 
 public:
   /*! Tested */
@@ -26,142 +37,67 @@ public:
     int nb_s = vd.size() - N;
     if (nb_s > 0) {
       // vector size is bigger than current vector
-      for (unsigned int i = 0; i < N; i++) {
+      for (std::size_t i = 0; i < N; i++) {
         data[i] = vd[i];
       }
     } else {
       // vector size is smaller than current vector
-      for (unsigned int i = 0; i < N; i++) {
+      for (std::size_t i = 0; i < N; i++) {
         if (i < vd.size()) {
-          this(i, vd[i]);
+          (*this)(make_vecn_cell<T>(vd[i], i));
         } else {
-          this(i, static_cast<T>(0));
+          (*this)(make_vecn_cell<T>(0, i));
         }
       }
     }
   } /*! Tested */
-  VecN(const std::array<T, N> &arr) : data(arr) {}
-  VecN(T s): data.fill(s) {
-    
+  VecN(const T (&arr)[N]) {
+    memcpy(data, arr, N * sizeof(T));
+  }
+  VecN(T s) {
+    for (std::size_t i = 0; i < N; ++i) {
+      data[i] = s;
+    }
   }
   /*! Tested */
-  OpResult operator[](unsigned int &out) const {
-    out = static_cast<unsigned int>(data.size());
+  OpResult operator()(std::size_t &out) const {
+    out = N;
     OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
-                   SUCCESS);
+                   "(size_t)", SUCCESS);
     return vflag;
   }
   /*! Tested */
-  OpResult operator[](unsigned int index, T &out) const {
-    if (index >= data.size()) {
+  OpResult operator()(std::size_t index, T &out) const {
+    if (index >= N) {
       OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
-                     INDEX_ERROR);
+                     "(size_t, T&)", INDEX_ERROR);
       return vflag;
     }
     out = data[index];
     OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
-                   SUCCESS);
+                   "(size_t, T&)", SUCCESS);
     return vflag;
   }
-  OpResult operator[](std::array<T, N> &out) const {
-    out = data;
+  OpResult operator()(T (&out)[N]) const {
+    memcpy(out, data, N * sizeof(T));
     OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
-                   SUCCESS);
+                   "(T (&)[N])", SUCCESS);
     return vflag;
   }
   /*! Tested */
-  OpResult operator()(unsigned int index, const T &el) {
-    if (index >= data.size()) {
+  OpResult operator()(const VecNCell<T> &cell) {
+    if (cell.index >= N) {
       OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
-                     INDEX_ERROR);
+                     "(const VecNCell<T>&)", INDEX_ERROR);
       return vflag;
     }
-    data[index] = el;
+    data[cell.index] = cell.el;
 
     OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
-                   SUCCESS);
+                   "(const VecNCell<T>&)", SUCCESS);
     return vflag;
   }
-  /*! Tested */
-  static OpResult base(unsigned int nb_dimensions,
-                       unsigned int base_order,
-                       std::vector<T> &out) {
-    if (base_order >= nb_dimensions) {
 
-      OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
-                     ARG_ERROR);
-      return vflag;
-    }
-    //
-    if (out.size() != nb_dimensions) {
-      out.clear();
-      out.resize(static_cast<std::size_t>(nb_dimensions));
-    }
-    for (unsigned int i = 0; i < nb_dimensions; i++) {
-      out[i] = static_cast<T>(0);
-    }
-    out[base_order] = static_cast<T>(1);
-
-    OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
-                   SUCCESS);
-    return vflag;
-  }
-  OpResult apply_el(T v, const std::function<T(T, T)> &fn,
-                    std::vector<T> &out) const {
-    if (out.size() != data.size()) {
-      out.resize(data.size());
-    }
-    for (unsigned int i = 0; i < data.size(); i++) {
-      out[i] = fn(data[i], v);
-    }
-    OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
-                   SUCCESS);
-    return vflag;
-  }
-  OpResult apply_el(const std::vector<T> &v,
-                    const std::function<T(T, T)> &fn,
-                    std::vector<T> &out) const {
-    if (v.size() != data.size()) {
-      OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
-                     SIZE_ERROR);
-      return vflag;
-    }
-    if (data.size() != out.size()) {
-      out.resize(data.size());
-    }
-    for (unsigned int i = 0; i < data.size(); i++) {
-      out[i] = fn(data[i], v[i]);
-    }
-    OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
-                   SUCCESS);
-    return vflag;
-  }
-  OpResult apply_el(T v, const std::function<T(T, T)> &fn,
-                    VecN<T, N> &vout) const {
-    std::vector<T> out;
-    OpResult result = apply_el(v, fn, out);
-    if (result.status != SUCCESS) {
-      return result;
-    }
-    vout = VecN<T, N>(out);
-    OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
-                   SUCCESS);
-    return vflag;
-  }
-  OpResult apply_el(const VecN<T, N> &v,
-                    const std::function<T(T, T)> &fn,
-                    VecN<T, N> &vout) const {
-
-    for (unsigned int i = 0; i < data.size(); i++) {
-      T tout = static_cast<T>(0);
-      v[i, tout];                 // access
-      vout(i, fn(data[i], tout)); // setter
-    }
-
-    OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
-                   SUCCESS);
-    return vflag;
-  }
   /*! Tested */
   OpResult add(T v, std::vector<T> &out) const {
     auto fn = [](T thisel, T argel) {
@@ -337,7 +273,7 @@ public:
   /*! Tested */
   OpResult divide(const std::vector<T> &v,
                   std::vector<T> &out) const {
-    for (unsigned int j = 0; j < v.size(); j++) {
+    for (std::size_t j = 0; j < v.size(); j++) {
       if (v[j] == static_cast<T>(0)) {
         OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
                        ARG_ERROR);
@@ -356,12 +292,12 @@ public:
   /*! Tested */
   OpResult divide(const VecN<T, N> &v,
                   VecN<T, N> &out) const {
-    unsigned int vsize = 0;
+    std::size_t vsize = 0;
     v.size(vsize);
     // check zero division
-    for (unsigned int j = 0; j < vsize; j++) {
+    for (std::size_t j = 0; j < vsize; j++) {
       T vout = static_cast<T>(0);
-      v[j, vout]; // access
+      v(j, vout); // access
       if (vout == static_cast<T>(0)) {
 
         OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
@@ -380,7 +316,7 @@ public:
   }
   OpResult dot(const T &v, T &out) const {
     out = static_cast<T>(0);
-    for (unsigned int i = 0; i < data.size(); i++) {
+    for (std::size_t i = 0; i < N; i++) {
       out += data[i] * v;
     }
 
@@ -389,13 +325,13 @@ public:
     return vflag;
   }
   OpResult dot(const std::vector<T> &v, T &out) const {
-    if (v.size() != data.size()) {
+    if (v.size() != N) {
       OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
                      SIZE_ERROR);
       return vflag;
     }
     out = static_cast<T>(0);
-    for (unsigned int i = 0; i < data.size(); i++) {
+    for (std::size_t i = 0; i < N; i++) {
       out += data[i] * v[i];
     }
 
@@ -405,19 +341,19 @@ public:
   }
   OpResult dot(const VecN<T, N> &v, T &out) const {
 
-    unsigned int vsize = 0;
+    std::size_t vsize = 0;
     v.size(vsize);
     // check size
-    if (vsize != data.size()) {
+    if (vsize != N) {
       OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
                      SIZE_ERROR);
       return vflag;
     }
 
     out = static_cast<T>(0);
-    for (unsigned int i = 0; i < data.size(); i++) {
-      T tout = static_cast<T>(0);
-      v[i, tout];
+    for (std::size_t i = 0; i < N; i++) {
+      T tout;
+      v(i, tout);
       out += data[i] * tout;
     }
 
@@ -432,10 +368,67 @@ public:
                    NOT_IMPLEMENTED);
     return vflag;
   }
+
+private:
+  template<typename Func>
+  OpResult apply_el(T v, const Func &fn,
+                    T (&out)[N]) const {
+    for (std::size_t i = 0; i < N; i++) {
+      out[i] = fn(data[i], v);
+    }
+    OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
+                   "apply_el(T, <T(T,T)>, T(&)[N])",
+                   SUCCESS);
+    return vflag;
+  }
+  template<typename Func>
+  OpResult apply_el(const T (&v)[N],
+                    const Func &fn
+                    T (&out)[N]) const {
+
+    for (std::size_t i = 0; i < N; i++) {
+      out[i] = fn(data[i], v[i]);
+    }
+    OpResult vflag(
+        __LINE__, __FILE__, __FUNCTION__,
+        "apply_el(const T(&)[N], const Func&, T(&)[N])",
+        SUCCESS);
+    return vflag;
+  }
+  template <typename Func>
+  OpResult apply_el(T v, const Func &fn,
+                    VecN<T, N> &vout) const {
+    std::vector<T> out;
+    OpResult result = apply_el(v, fn, out);
+    if (result.status != SUCCESS) {
+      return result;
+    }
+    vout = VecN<T, N>(out);
+    OpResult vflag(
+        __LINE__, __FILE__, __FUNCTION__,
+        "apply_el(T,const <T(T,T)>&, VecN<T, N>&)",
+        SUCCESS);
+    return vflag;
+  }
+
+  template <typename Func>
+  OpResult apply_el(const VecN<T, N> &v,
+                    const Func &fn,
+                    VecN<T, N> &vout) const {
+
+    for (std::size_t i = 0; i < N; i++) {
+      T tout = static_cast<T>(0);
+      v(i, tout);                                 // access
+      vout(make_vecn_cell(fn(data[i], tout), i)); // setter
+    }
+
+    OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
+                   SUCCESS);
+    return vflag;
+  }
 };
 
-template <typename T, unsigned int BaseOrder,
-          unsigned int N>
+template <typename T, std::size_t BaseOrder, std::size_t N>
 OpResult base(VecN<T, N> &vout) {
   if (BaseOrder >= N) {
     OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
@@ -453,13 +446,13 @@ template <typename T> class VecN<T, 2> {
 
   OpResult cross(const VecN<T, 2> &v, T &out) const {
     T t1;
-    this[0, t1];
+    this(0, t1);
     T t2;
-    this[1, t2];
+    this(1, t2);
     T v1;
-    v[0, v1];
+    v(0, v1);
     T v2;
-    v[1, v2];
+    v(1, v2);
     T t1v2 = t1 * v2;
     T t2v1 = t2 * v1;
     out = t1v2 - t2v1;
@@ -474,25 +467,25 @@ template <typename T> class VecN<T, 3> {
   OpResult cross(const VecN<T, 3> &v,
                  VecN<T, 3> &out) const {
     T tx;
-    this[0, t1];
+    (*this)(0, tx);
     T ty;
-    this[1, t2];
+    (*this)(1, ty);
     T tz;
-    this[2, t2];
+    (*this)(2, tz);
     //
     T vx;
-    v[0, v1];
+    v(0, vx);
     T vy;
-    v[1, v2];
+    v(1, vy);
     T vz;
-    v[2, v2];
+    v(2, vz);
     //
     T x = ty * vz - tz * vy;
     T y = tz * vx - tx * vz;
     T z = tx * vy - ty * vx;
-    out(0, x);
-    out(1, y);
-    out(2, z);
+    out(make_vecn_cell(x, 0));
+    out(make_vecn_cell(y, 1));
+    out(make_vecn_cell(z, 2));
     OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
                    SUCCESS);
     return vflag;
