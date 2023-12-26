@@ -49,3 +49,8 @@ install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
         DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake)
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/math3d DESTINATION include)
+
+option(BUILD_MATH3D_TESTS "Build test programs" OFF)
+if(BUILD_MATH3D_TESTS)
+    add_subdirectory("tests")
+endif(BUILD_MATH3D_TESTS)
