@@ -1,6 +1,6 @@
 // test file for quaternion
-#include <math3d/vecn.hpp>
 #include <gtest/gtest.h>
+#include <math3d/vecn.hpp>
 
 /*! @{
  */
@@ -13,15 +13,14 @@ using namespace math3d;
  */
 
 TEST(VecNTest, test_empty_constructor) {
-  VecN<real, 2> v;
-  std::size_t vsize = 5;
-  v(vsize);
+  VecN<real, 2> vec;
+  std::size_t vsize;
+  vec(vsize);
   EXPECT_EQ(vsize, static_cast<std::size_t>(2));
 }
 
 TEST(VecNTest, test_vector_constructor) {
-  std::vector<real> tvec;
-  tvec.resize(5);
+  real tvec[5];
   real v1 = static_cast<real>(-21);
   real v2 = static_cast<real>(1);
   real v3 = static_cast<real>(2);
@@ -87,7 +86,7 @@ TEST(VecNTest, test_dimension_constructor) {
 
   // fifth value
 
-  EXPECT_EQ(v(make_vecn_cell(t1,4)).status, SUCCESS);
+  EXPECT_EQ(v(make_vecn_cell(t1, 4)).status, SUCCESS);
   EXPECT_EQ(t1, r1);
 
   // sixth value
@@ -100,8 +99,8 @@ TEST(VecNTest, test_vecn_flag_fn_name) {
   std::size_t vsize = 5;
   auto vflag = v(vsize);
   const std::string fname = vflag.fn_name;
-  const std::string compval = "size";
-  EXPECT_EQ(fname == compval, true);
+  const std::string compval = "operator()";
+  EXPECT_EQ(fname, compval);
 }
 TEST(VecNTest, test_debug_check_true) {
   VecN<real, 2> v;
@@ -109,33 +108,16 @@ TEST(VecNTest, test_debug_check_true) {
   bool vflag = CHECK(v(vsize));
   EXPECT_EQ(vflag, true);
 }
-TEST(VecNTest, test_add_debug_check_false) {
-  std::vector<real> inv;
-  inv.resize(5);
-  inv[0] = 1;
-  inv[1] = 2;
-  inv[2] = 3;
-  inv[3] = 2;
-  inv[4] = 1;
-  VecN<real, 5> v(inv);
-  std::vector<real> out;
-  std::vector<real> avec;
-  avec.resize(3);
-  avec[0] = 83;
-  avec[1] = 8;
-  avec[2] = 3;
-  auto result = CHECK(v.add(avec, out));
-  EXPECT_EQ(result, false);
-}
+
 TEST(VecNTest, test_debug_check_m_true) {
   VecN<real, 2> v;
   std::size_t vsize = 5;
-  Result res;
-  CHECK_M(v(vsize), res);
+  OpResult res = v(vsize);
+  CHECK_MATH3D(v(vsize), res);
   EXPECT_EQ(res.success, true);
-  std::string cname = "v.size(vsize)";
+  std::string cname = "v(vsize)";
   std::string rcname = res.call_name;
-  EXPECT_EQ(rcname == cname, true);
+  EXPECT_EQ(rcname, cname);
 }
 
 /*! @} */
@@ -144,14 +126,16 @@ TEST(VecNTest, test_debug_check_m_true) {
  */
 TEST(VecNTest, test_to_base_dimensions_vector) {
   //
-  std::vector<real> out;
-  VecN<real, 6>::base(6, 1, out);
+  VecN<real, 6> vout{};
+  base<real, 1, 6>(vout);
+  real out[6];
+  vout(out);
   EXPECT_EQ(out[1], static_cast<real>(1));
 }
 TEST(VecNTest, test_to_base_dimensions_vecn) {
   //
-  VecN<real, 6> vout(0);
-  VecN<real, 6>::base(1, vout);
+  VecN<real, 6> vout;
+  base<real, 1, 6>(vout);
   real tout = 0;
   EXPECT_EQ(vout(1, tout).status, SUCCESS);
   EXPECT_EQ(tout, static_cast<real>(1));
@@ -162,15 +146,14 @@ TEST(VecNTest, test_to_base_dimensions_vecn) {
 /*! @{ testing summation for the vector
  */
 TEST(VecNTest, test_add_scalar_vector) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1;
   inv[1] = 2;
   inv[2] = 3;
   inv[3] = 2;
   inv[4] = 1;
   VecN<real, 5> v(inv);
-  std::vector<real> out;
+  real out[5];
   auto result = v.add(1, out).status;
   EXPECT_EQ(result, SUCCESS);
   EXPECT_EQ(out[0], 2);
@@ -180,8 +163,7 @@ TEST(VecNTest, test_add_scalar_vector) {
   EXPECT_EQ(out[4], 2);
 }
 TEST(VecNTest, test_add_scalar_vecn) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1;
   inv[1] = 2;
   inv[2] = 3;
@@ -203,37 +185,17 @@ TEST(VecNTest, test_add_scalar_vecn) {
   out(4, t);
   EXPECT_EQ(t, 2);
 }
-TEST(VecNTest, test_add_vector_to_vector_f) {
-  std::vector<real> inv;
-  inv.resize(5);
-  inv[0] = 1;
-  inv[1] = 2;
-  inv[2] = 3;
-  inv[3] = 2;
-  inv[4] = 1;
-  VecN<real, 5> v(inv);
-  std::vector<real> out;
-  std::vector<real> avec;
-  avec.resize(3);
-  avec[0] = 83;
-  avec[1] = 8;
-  avec[2] = 3;
-  auto result = v.add(avec, out).status;
-  EXPECT_EQ(result, SIZE_ERROR);
-}
 
 TEST(VecNTest, test_add_vector_to_vector_t) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1;
   inv[1] = 2;
   inv[2] = 3;
   inv[3] = 2;
   inv[4] = 1;
   VecN<real, 5> v(inv);
-  std::vector<real> out;
-  std::vector<real> avec;
-  avec.resize(5);
+  real out[5];
+  real avec[5];
   avec[0] = 1;
   avec[1] = 2;
   avec[2] = 2;
@@ -248,8 +210,7 @@ TEST(VecNTest, test_add_vector_to_vector_t) {
   EXPECT_EQ(out[4], static_cast<real>(2));
 }
 TEST(VecNTest, test_add_vecn_to_vecn_t) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1;
   inv[1] = 2;
   inv[2] = 3;
@@ -260,9 +221,8 @@ TEST(VecNTest, test_add_vecn_to_vecn_t) {
   // output vector
   VecN<real, 5> out;
 
-  std::vector<real> avec;
+  real avec[5];
   // prepare vector to add
-  avec.resize(5);
   avec[0] = 1;
   avec[1] = 2;
   avec[2] = 2;
@@ -295,15 +255,14 @@ TEST(VecNTest, test_add_vecn_to_vecn_t) {
 /*! @{ testing subtraction for the vector
  */
 TEST(VecNTest, test_subtract_scalar_vector) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1;
   inv[1] = 2;
   inv[2] = 3;
   inv[3] = 2;
   inv[4] = 1;
   VecN<real, 5> v(inv);
-  std::vector<real> out;
+  real out[5];
   auto result = v.subtract(1, out).status;
   EXPECT_EQ(result, SUCCESS);
   EXPECT_EQ(out[0], 0);
@@ -313,8 +272,7 @@ TEST(VecNTest, test_subtract_scalar_vector) {
   EXPECT_EQ(out[4], 0);
 }
 TEST(VecNTest, test_subtract_scalar_vecn) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1;
   inv[1] = 2;
   inv[2] = 3;
@@ -336,36 +294,16 @@ TEST(VecNTest, test_subtract_scalar_vecn) {
   out(4, t);
   EXPECT_EQ(t, 0);
 }
-TEST(VecNTest, test_subtract_vector_to_vector_f) {
-  std::vector<real> inv;
-  inv.resize(5);
-  inv[0] = 1;
-  inv[1] = 2;
-  inv[2] = 3;
-  inv[3] = 2;
-  inv[4] = 1;
-  VecN<real, 5> v(inv);
-  std::vector<real> out;
-  std::vector<real> avec;
-  avec.resize(3);
-  avec[0] = 83;
-  avec[1] = 8;
-  avec[2] = 3;
-  auto result = v.subtract(avec, out).status;
-  EXPECT_EQ(result, SIZE_ERROR);
-}
 TEST(VecNTest, test_subtract_vector_to_vector_t) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1;
   inv[1] = 2;
   inv[2] = 3;
   inv[3] = 2;
   inv[4] = 1;
   VecN<real, 5> v(inv);
-  std::vector<real> out;
-  std::vector<real> avec;
-  avec.resize(5);
+  real out[5];
+  real avec[5];
   avec[0] = 1;
   avec[1] = 2;
   avec[2] = 2;
@@ -380,8 +318,7 @@ TEST(VecNTest, test_subtract_vector_to_vector_t) {
   EXPECT_EQ(out[4], static_cast<real>(0));
 }
 TEST(VecNTest, test_subtract_vecn_to_vecn_t) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1;
   inv[1] = 2;
   inv[2] = 3;
@@ -392,9 +329,8 @@ TEST(VecNTest, test_subtract_vecn_to_vecn_t) {
   // output vector
   VecN<real, 5> out;
 
-  std::vector<real> avec;
+  real avec[5];
   // prepare vector to subtract
-  avec.resize(5);
   avec[0] = 1;
   avec[1] = 2;
   avec[2] = 2;
@@ -428,15 +364,14 @@ TEST(VecNTest, test_subtract_vecn_to_vecn_t) {
 /*! @{ testing element-wise multiplication for the vector
  */
 TEST(VecNTest, test_multiply_scalar_vector) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1;
   inv[1] = 2;
   inv[2] = 3;
   inv[3] = 2;
   inv[4] = 1;
   VecN<real, 5> v(inv);
-  std::vector<real> out;
+  real out[5];
   auto result = v.multiply(2, out).status;
   EXPECT_EQ(result, SUCCESS);
   EXPECT_EQ(out[0], 2);
@@ -446,8 +381,7 @@ TEST(VecNTest, test_multiply_scalar_vector) {
   EXPECT_EQ(out[4], 2);
 }
 TEST(VecNTest, test_multiply_scalar_vecn) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1;
   inv[1] = 2;
   inv[2] = 3;
@@ -469,36 +403,16 @@ TEST(VecNTest, test_multiply_scalar_vecn) {
   out(4, t);
   EXPECT_EQ(t, 2);
 }
-TEST(VecNTest, test_multiply_vector_to_vector_f) {
-  std::vector<real> inv;
-  inv.resize(5);
-  inv[0] = 1;
-  inv[1] = 2;
-  inv[2] = 3;
-  inv[3] = 2;
-  inv[4] = 1;
-  VecN<real, 5> v(inv);
-  std::vector<real> out;
-  std::vector<real> avec;
-  avec.resize(3);
-  avec[0] = 83;
-  avec[1] = 8;
-  avec[2] = 3;
-  auto result = v.multiply(avec, out).status;
-  EXPECT_EQ(result, SIZE_ERROR);
-}
 TEST(VecNTest, test_multiply_vector_to_vector_t) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1;
   inv[1] = 2;
   inv[2] = 3;
   inv[3] = 2;
   inv[4] = 1;
   VecN<real, 5> v(inv);
-  std::vector<real> out;
-  std::vector<real> avec;
-  avec.resize(5);
+  real out[5];
+  real avec[5];
   avec[0] = 1;
   avec[1] = 2;
   avec[2] = 2;
@@ -513,8 +427,7 @@ TEST(VecNTest, test_multiply_vector_to_vector_t) {
   EXPECT_EQ(out[4], static_cast<real>(1));
 }
 TEST(VecNTest, test_multiply_vecn_to_vecn_t) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1;
   inv[1] = 2;
   inv[2] = 3;
@@ -525,9 +438,8 @@ TEST(VecNTest, test_multiply_vecn_to_vecn_t) {
   // output vector
   VecN<real, 5> out;
 
-  std::vector<real> avec;
+  real avec[5];
   // prepare vector to multiply
-  avec.resize(5);
   avec[0] = 1;
   avec[1] = 2;
   avec[2] = 2;
@@ -560,15 +472,14 @@ TEST(VecNTest, test_multiply_vecn_to_vecn_t) {
 /*! @{ testing element-wise division for the vector
  */
 TEST(VecNTest, test_divide_scalar_vector) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 2;
   inv[1] = 4;
   inv[2] = 6;
   inv[3] = 2;
   inv[4] = 0;
   VecN<real, 5> v(inv);
-  std::vector<real> out;
+  real out[5];
   auto result = v.divide(2, out).status;
   EXPECT_EQ(result, SUCCESS);
   EXPECT_EQ(out[0], 1);
@@ -578,21 +489,19 @@ TEST(VecNTest, test_divide_scalar_vector) {
   EXPECT_EQ(out[4], 0);
 }
 TEST(VecNTest, test_divide_scalar_vector_zero) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 2;
   inv[1] = 4;
   inv[2] = 6;
   inv[3] = 2;
   inv[4] = 0;
   VecN<real, 5> v(inv);
-  std::vector<real> out;
+  real out[5];
   auto result = v.divide(0, out).status;
   EXPECT_EQ(result, ARG_ERROR);
 }
 TEST(VecNTest, test_divide_scalar_vecn) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 2;
   inv[1] = 4;
   inv[2] = 6;
@@ -615,8 +524,7 @@ TEST(VecNTest, test_divide_scalar_vecn) {
   EXPECT_EQ(t, 0);
 }
 TEST(VecNTest, test_divide_scalar_vecn_zero) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 2;
   inv[1] = 4;
   inv[2] = 6;
@@ -627,36 +535,16 @@ TEST(VecNTest, test_divide_scalar_vecn_zero) {
   auto result = v.divide(0, out).status;
   EXPECT_EQ(result, ARG_ERROR);
 }
-TEST(VecNTest, test_divide_vector_to_vector_f) {
-  std::vector<real> inv;
-  inv.resize(5);
-  inv[0] = 1;
-  inv[1] = 2;
-  inv[2] = 3;
-  inv[3] = 2;
-  inv[4] = 1;
-  VecN<real, 5> v(inv);
-  std::vector<real> out;
-  std::vector<real> avec;
-  avec.resize(3);
-  avec[0] = 83;
-  avec[1] = 8;
-  avec[2] = 3;
-  auto result = v.divide(avec, out).status;
-  EXPECT_EQ(result, SIZE_ERROR);
-}
 TEST(VecNTest, test_divide_vector_to_vector_t) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1;
   inv[1] = 2;
   inv[2] = 4;
   inv[3] = 2;
   inv[4] = 1;
   VecN<real, 5> v(inv);
-  std::vector<real> out;
-  std::vector<real> avec;
-  avec.resize(5);
+  real out[5];
+  real avec[5];
   avec[0] = 1;
   avec[1] = 2;
   avec[2] = 2;
@@ -671,17 +559,15 @@ TEST(VecNTest, test_divide_vector_to_vector_t) {
   EXPECT_EQ(out[4], static_cast<real>(1));
 }
 TEST(VecNTest, test_divide_vector_to_vector_zero) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1;
   inv[1] = 2;
   inv[2] = 4;
   inv[3] = 2;
   inv[4] = 1;
   VecN<real, 5> v(inv);
-  std::vector<real> out;
-  std::vector<real> avec;
-  avec.resize(5);
+  real out[5];
+  real avec[5];
   avec[0] = 1;
   avec[1] = 2;
   avec[2] = 0;
@@ -690,23 +576,8 @@ TEST(VecNTest, test_divide_vector_to_vector_zero) {
   auto result = v.divide(avec, out).status;
   EXPECT_EQ(result, ARG_ERROR);
 }
-TEST(VecNTest, test_divide_vecn_to_vecn_f) {
-  std::vector<real> inv;
-  inv.resize(5);
-  inv[0] = 1;
-  inv[1] = 2;
-  inv[2] = 3;
-  inv[3] = 2;
-  inv[4] = 1;
-  VecN<real, 5> v(inv);
-  VecN<real, 5> out;
-  VecN<real, 5> avec(0);
-  auto result = v.divide(avec, out).status;
-  EXPECT_EQ(result, ARG_ERROR);
-}
 TEST(VecNTest, test_divide_vecn_to_vecn_t) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1;
   inv[1] = 2;
   inv[2] = 4;
@@ -717,9 +588,8 @@ TEST(VecNTest, test_divide_vecn_to_vecn_t) {
   // output vector
   VecN<real, 5> out;
 
-  std::vector<real> avec;
+  real avec[5];
   // prepare vector to divide
-  avec.resize(5);
   avec[0] = 1;
   avec[1] = 2;
   avec[2] = 2;
@@ -748,8 +618,7 @@ TEST(VecNTest, test_divide_vecn_to_vecn_t) {
   EXPECT_EQ(t, static_cast<real>(1));
 }
 TEST(VecNTest, test_divide_vecn_to_vecn_zero) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1;
   inv[1] = 2;
   inv[2] = 4;
@@ -760,9 +629,8 @@ TEST(VecNTest, test_divide_vecn_to_vecn_zero) {
   // output vector
   VecN<real, 5> out;
 
-  std::vector<real> avec;
+  real avec[5];
   // prepare vector to divide
-  avec.resize(5);
   avec[0] = 1;
   avec[1] = 2;
   avec[2] = -10;
@@ -784,8 +652,7 @@ TEST(VecNTest, test_divide_vecn_to_vecn_zero) {
  */
 
 TEST(VecNTest, test_dot_scalar_t) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1; // 2
   inv[1] = 2; // 4
   inv[2] = 3; // 6
@@ -799,8 +666,7 @@ TEST(VecNTest, test_dot_scalar_t) {
   EXPECT_EQ(out, static_cast<real>(18));
 }
 TEST(VecNTest, test_dot_scalar_zero) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1; // 2
   inv[1] = 2; // 4
   inv[2] = 3; // 6
@@ -814,17 +680,15 @@ TEST(VecNTest, test_dot_scalar_zero) {
   EXPECT_EQ(out, static_cast<real>(0));
 }
 TEST(VecNTest, test_dot_vector_t) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1; // 1
   inv[1] = 2; // 4
   inv[2] = 3; // 3
   inv[3] = 2; // 0
   inv[4] = 1; // 0
   // sum == 8
-  std::vector<real> avec;
+  real avec[5];
   VecN<real, 5> v(inv);
-  avec.resize(5);
   avec[0] = 1;
   avec[1] = 2;
   avec[2] = 1;
@@ -835,37 +699,16 @@ TEST(VecNTest, test_dot_vector_t) {
   EXPECT_EQ(result, SUCCESS);
   EXPECT_EQ(out, static_cast<real>(8));
 }
-TEST(VecNTest, test_dot_vector_f) {
-  std::vector<real> inv;
-  inv.resize(5);
-  inv[0] = 1; // 1
-  inv[1] = 2; // 4
-  inv[2] = 3; // 3
-  inv[3] = 2; // 0
-  inv[4] = 1; // 0
-  // sum == 8
-  std::vector<real> avec;
-  VecN<real, 5> v(inv);
-  avec.resize(3);
-  avec[0] = 1;
-  avec[1] = 2;
-  avec[2] = 1;
-  real out;
-  auto result = v.dot(avec, out).status;
-  EXPECT_EQ(result, SIZE_ERROR);
-}
 TEST(VecNTest, test_dot_vecn_t) {
-  std::vector<real> inv;
-  inv.resize(5);
+  real inv[5];
   inv[0] = 1; // 1
   inv[1] = 2; // 4
   inv[2] = 3; // 3
   inv[3] = 2; // 0
   inv[4] = 1; // 0
   // sum == 8
-  std::vector<real> avec;
+  real avec[5];
   VecN<real, 5> v(inv);
-  avec.resize(5);
   avec[0] = 1;
   avec[1] = 2;
   avec[2] = 1;

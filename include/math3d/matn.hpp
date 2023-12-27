@@ -1,7 +1,6 @@
 #ifndef MATN_HPP
 #define MATN_HPP
 
-#include <array>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -653,66 +652,6 @@ private:
 };
 
 } // namespace matn
-
-bool CHECK(OpResult r) { return r.status == SUCCESS; }
-
-/**Checks if operation was successful*/
-#define CHECK_MATN(call, res)                              \
-  do {                                                     \
-    res = call;                                            \
-    res.call_name = #call;                                 \
-    res.line_info = __LINE__;                              \
-    res.file_name = __FILE__;                              \
-  } while (0)
-
-OpResult INFO(const OpResult res) {
-  std::cerr << res.status << " :: " << res.file_name
-            << " :: " << res.line_info
-            << " :: " << res.fn_name
-            << " :: " << res.call_name << std::endl;
-  return res;
-}
-
-/**Prints information about the operation*/
-#define INFO_MATN(call, res)                               \
-  do {                                                     \
-    res = call;                                            \
-    res.call_name = #call;                                 \
-    res.line_info = __LINE__;                              \
-    res.file_name = __FILE__;                              \
-    if (res.status != SUCCESS) {                           \
-      res = INFO(res);                                     \
-    }                                                      \
-  } while (0)
-
-OpResult INFO_VERBOSE(OpResult res) {
-  if (res.status == SUCCESS) {
-    std::cerr << "SUCCESS "
-              << " :: " << res.file_name
-              << " :: " << res.fn_name
-              << " :: " << res.call_name
-              << " :: " << res.duration_info
-              << " microseconds" << std::endl;
-    return res;
-  }
-  return INFO(res);
-}
-
-/**Prints everything about operation result*/
-#define INFO_VERBOSE_MATN(call, res)                       \
-  do {                                                     \
-    auto start = std::chrono::steady_clock::now();         \
-    res = call;                                            \
-    auto stop = std::chrono::steady_clock::now();          \
-    auto duration = std::chrono::duration_cast<            \
-        std::chrono::microseconds>(stop - start);          \
-    res.duration_info =                                    \
-        to_string(static_cast<int>(duration.count()));     \
-    res.call_name = #call;                                 \
-    res.line_info = __LINE__;                              \
-    res.file_name = __FILE__;                              \
-    INFO_VERBOSE(res);                                     \
-  } while (0)
 
 } // namespace math3d
 
