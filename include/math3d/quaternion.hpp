@@ -15,11 +15,11 @@ namespace quaternion {
 
 /**Quaternion bases*/
 enum QuaternionBase : std::uint8_t {
-  kSCALAR_BASE = 1, // null value for quaternion base it has
-                    // no effect on computation
-  kI = 2, // i base for the second quaternion component
-  kJ = 3, // j base for the third quaternion component
-  kK = 4  // k base for the fourth quaternion component
+  kSCALAR = 1, // null value for quaternion base it has
+               // no effect on computation
+  kI = 2,      // i base for the second quaternion component
+  kJ = 3,      // j base for the third quaternion component
+  kK = 4       // k base for the fourth quaternion component
 };
 
 /**
@@ -28,7 +28,8 @@ enum QuaternionBase : std::uint8_t {
 template <class T> struct QuaternionComponent {
   QuaternionBase base;
   T r;
-  QuaternionComponent() = delete;
+
+  QuaternionComponent() : r(0), base(kSCALAR) {}
   QuaternionComponent(QuaternionBase b, T a)
       : base(b), r(a) {}
 };
@@ -72,7 +73,7 @@ public:
         qs[3].r;
   }
 
-  OpResult operator[](T &out) const { return scalar(out); }
+  OpResult operator()(T &out) const { return scalar(out); }
   OpResult scalar(T &out) const {
 
     out = coeffs[0];
@@ -80,21 +81,23 @@ public:
                     "scalar", SUCCESS);
   }
   OpResult vector(vecn::VecN<T, 3> &out) const {
+    T v[3];
     v[0] = coeffs[1];
     v[1] = coeffs[2];
     v[2] = coeffs[3];
+    out = vecn::VecN<T, 3>(v);
 
     return OpResult(__LINE__, __FILE__, __FUNCTION__,
                     "vector", SUCCESS);
   }
-  OpResult operator[](vecn::VecN<T, 3> &out) const {
-    return vector(v);
+  OpResult operator()(vecn::VecN<T, 3> &out) const {
+    return vector(out);
   }
-  OpResult operator[](const QuaternionBase &b,
+  OpResult operator()(const QuaternionBase &b,
                       QuaternionComponent<T> &c) const {
-    switch (b.base) {
-    case kSCALAR_BASE: {
-      c = QuaternionComponent(kSCALAR_BASE, coeffs[0]);
+    switch (b) {
+    case kSCALAR: {
+      c = QuaternionComponent(kSCALAR, coeffs[0]);
       break;
     }
     case kI: {
@@ -111,13 +114,19 @@ public:
     }
     }
 
-    return OpResult(__LINE__, __FILE__, __FUNCTION__, "[]",
-                    SUCCESS);
+    return OpResult(
+        __LINE__, __FILE__, __FUNCTION__,
+        "(const QuaternionBase&, QuaternionComponent<T>&)",
+        SUCCESS);
   }
 
-  OpResult operator[](QuaternionComponent<T> &c) const {
+  OpResult
+  operator()(const QuaternionComponent<T> &c) const {
     QuaternionBase b = c.base;
-    return this[b, c];
+    coeffs[static_cast<std::uint8_t>(c.base) - 1] = c.r;
+    return OpResult(__LINE__, __FILE__, __FUNCTION__,
+                    "(const QuaternionComponent<T>&)",
+                    SUCCESS);
   }
   OpResult multiply(T t, vecn::VecN<T, 3> &out) const {
     vecn::VecN<T, 3> vec;
@@ -166,10 +175,10 @@ public:
     return vec.subtract(t, out);
   }
   OpResult divide(vecn::VecN<T, 3> t,
-                  vecn::VecN<T> &out) const {
+                  vecn::VecN<T, 3> &out) const {
     for (std::size_t i = 0; i < 3; i++) {
       T v;
-      t[i, v];
+      t(i, v);
       if (v == 0) {
         return OpResult(__LINE__, __FILE__, __FUNCTION__,
                         "divide", ARG_ERROR);
@@ -377,7 +386,7 @@ public:
     auto fn = [](T thisval, T tval) {
       return thisval * tval;
     };
-    Quaternion q(r, vecn::VecN<T>(r));
+    Quaternion q(r, vecn::VecN<T, 3>(r));
     return OpResult(__LINE__, __FILE__, __FUNCTION__,
                     "product", apply_el(q, fn, out));
   }
@@ -450,10 +459,9 @@ public:
 private:
   T coeffs[4];
 
-  opstatus_t apply_el(
-          const Quaternion &q,
-          const std::function<T(T, T> &fn,
-              Quaternion<T> &out) const {
+  template <typename Func>
+  opstatus_t apply_el(const Quaternion &q, const Func &fn,
+                      Quaternion<T> &out) const {
     T s;
     scalar(s);
     vecn::VecN<T, 3> v;
@@ -473,7 +481,7 @@ private:
     }
     out(ovec);
     return SUCCESS;
-    }
+  }
 };
 
 } // namespace quaternion
