@@ -135,35 +135,26 @@ public:
       data[i] = fill_value;
     }
   }
-  /**\brief Create matrix based on argument matrix*/
-  template <std::size_t OutRowNb = RowNb,
-            std::size_t OutColNb = ColNb>
+
   static OpResult
-  from_row_cols(MatN<T, OutRowNb, OutColNb> &out) {
-    out = MatN<T, OutRowNb, OutColNb>(static_cast<T>(0));
-    return OpResult(__LINE__, __FILE__, __FUNCTION__,
-                    "from_row_cols", SUCCESS);
-  }
-  template <std::size_t OutRowNb = RowNb,
-            std::size_t OutColNb = ColNb>
-  static OpResult
-  from_row_cols(T v, MatN<T, OutRowNb, OutColNb> &out) {
-    MatN<T, OutRowNb, OutColNb> mat(v);
+  from_row_cols(T v, MatN<T, RowNb, ColNb> &out) {
+    MatN<T, RowNb, ColNb> mat(v);
     out = mat;
     return OpResult(__LINE__, __FILE__, __FUNCTION__,
                     "from_row_cols", SUCCESS);
   }
-  template <std::size_t OutRowNb = RowNb,
-            std::size_t OutColNb = ColNb>
-  static OpResult
-  identity(std::size_t nb,
-           MatN<T, OutRowNb, OutColNb> &out) {
-    MatN<T, OutRowNb, OutColNb> mat;
-    auto r = from_row_cols<OutRowNb, OutColNb>(mat);
-    if (r.status != SUCCESS)
-      return r;
-    for (std::size_t i = 0; i < nb; i++) {
-      mat(i, i, static_cast<T>(1));
+
+  /**\brief Create matrix based on argument matrix*/
+  static OpResult zeros(MatN<T, RowNb, ColNb> &out) {
+    MatN<T, RowNb, ColNb>::from_row_cols(0, out);
+    return OpResult(__LINE__, __FILE__, __FUNCTION__,
+                    "zeros", SUCCESS);
+  }
+  template <std::size_t N>
+  static OpResult identity(MatN<T, N, N> &out) {
+    MatN<T, N, N> mat;
+    for (std::size_t i = 0; i < N; i++) {
+      mat(make_matn_cell(static_cast<T>(1), i, i));
     }
     out = mat;
     return OpResult(__LINE__, __FILE__, __FUNCTION__,
@@ -534,7 +525,7 @@ public:
                       "add_rows", SIZE_ERROR);
     }
     // fill output matrix with zeros
-    from_row_cols(out);
+    out = MatN<T, RowNb + (InRow / ColNb), ColNb>(0);
 
     // fill with the output matrix with current matrix
     // elements
@@ -578,7 +569,7 @@ public:
                       "add_columns", SIZE_ERROR);
     }
     // fill output matrix with zeros
-    from_row_cols(out);
+    MatN<T, RowNb, ColNb + (InCol / RowNb)>::zeros(out);
 
     // fill with the output matrix with current matrix
     // elements

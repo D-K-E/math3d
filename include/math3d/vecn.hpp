@@ -68,15 +68,13 @@ public:
   /*! Tested */
   OpResult operator()(const VecNCell<T> &cell) {
     if (cell.index >= N) {
-      OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
+      return OpResult(__LINE__, __FILE__, __FUNCTION__,
                      "(const VecNCell<T>&)", INDEX_ERROR);
-      return vflag;
     }
     data[cell.index] = cell.content;
 
-    OpResult vflag(__LINE__, __FILE__, __FUNCTION__,
+    return OpResult(__LINE__, __FILE__, __FUNCTION__,
                    "(const VecNCell<T>&)", SUCCESS);
-    return vflag;
   }
 
   /*! Tested */

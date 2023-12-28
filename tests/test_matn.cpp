@@ -176,10 +176,10 @@ TEST(MatnTest, test_single_vec_constructor_smaller) {
 /*! @}
  */
 
-TEST(MatnTest, test_static_from_row_cols) {
+TEST(MatnTest, test_static_zeros) {
 
   MatN<real, 2, 3> m;
-  auto r = MatN<real>::from_row_cols(m);
+  auto r = MatN<real, 2, 3>::zeros(m);
   EXPECT_EQ(r.status, SUCCESS);
 
   std::size_t vsize = 0;
@@ -208,7 +208,7 @@ TEST(MatnTest, test_static_from_row_cols) {
 TEST(MatnTest, test_static_from_row_cols_fill) {
 
   MatN<real, 2, 3> m;
-  MatN<real, 10, 10>::from_row_cols(20, m);
+  MatN<real, 2, 3>::from_row_cols(20, m);
   std::size_t vsize = 0;
 
   m(vsize);
@@ -250,9 +250,9 @@ TEST(MatnTest, test_fill) {
 TEST(MatnTest, test_transpose) {
 
   MatN<real, 2, 3> m;
-  MatN<real, 10>::from_row_cols(m);
+  MatN<real, 2, 3>::zeros(m);
   MatN<real, 3, 2> out;
-  MatN<real, 10>::from_row_cols(out);
+  MatN<real, 3, 2>::zeros(out);
 
   auto res = m.transpose(out);
   EXPECT_EQ(res.status, SUCCESS);
@@ -269,7 +269,7 @@ TEST(MatnTest, test_transpose) {
 TEST(MatnTest, test_col_nb) {
 
   MatN<real, 2, 3> m;
-  MatN<real, 1>::from_row_cols(m);
+  MatN<real, 2, 3>::zeros(m);
   std::size_t rows, cnb;
   auto r = m(rows, cnb);
   EXPECT_EQ(r.status, SUCCESS);
@@ -278,7 +278,7 @@ TEST(MatnTest, test_col_nb) {
 }
 TEST(MatnTest, test_row_nb) {
   MatN<real, 2, 3> m;
-  MatN<real, 1>::from_row_cols(m);
+  MatN<real, 2, 3>::zeros(m);
   std::size_t rnb, cols;
   auto r = m(rnb, cols);
   EXPECT_EQ(r.status, SUCCESS);
@@ -287,7 +287,7 @@ TEST(MatnTest, test_row_nb) {
 }
 TEST(MatnTest, test_get_size) {
   MatN<real, 2, 3> m;
-  MatN<real, 1>::from_row_cols(m);
+  MatN<real, 2, 3>::zeros(m);
   std::size_t snb = 0;
   auto r = m(snb);
   EXPECT_EQ(r.status, SUCCESS);
@@ -699,8 +699,7 @@ TEST(MatnTest, test_dot_vector) {
   // values from
   // https://people.math.umass.edu/~havens/m235Lectures/Lecture05.pdf
 
-  real Amat_values[] = {1,  -4, 7,  -2, 5,
-                                   -8, 3,  -6, 9};
+  real Amat_values[] = {1, -4, 7, -2, 5, -8, 3, -6, 9};
   real Bv[] = {2, 1, -1};
 
   MatN<real, 3, 3> A(Amat_values);
@@ -721,9 +720,7 @@ TEST(MatnTest, test_dot_vector) {
 }
 TEST(MatnTest, test_add_rows) {
 
-  real new_rows[] = {1, -4, 7,
-                    -2, 5, -8,
-                    3, -6, 9};
+  real new_rows[] = {1, -4, 7, -2, 5, -8, 3, -6, 9};
   real Avals[] = {2, 1, -1};
 
   MatN<real, 1, 3> A(Avals);
@@ -750,15 +747,13 @@ TEST(MatnTest, test_add_rows) {
 }
 TEST(MatnTest, test_add_columns) {
 
-  real new_columns[] = {1,  -4, 7,  -2, 5,
-                                     -8, 3,  -6, 9};
+  real new_columns[] = {1, -4, 7, -2, 5, -8, 3, -6, 9};
   real Avals[] = {2, 1, -1};
 
   MatN<real, 3, 1> A(Avals);
   MatN<real, 3, 4> out;
   //
-  auto res =
-      A.add_columns<9>(new_columns, out);
+  auto res = A.add_columns<9>(new_columns, out);
   //
   EXPECT_EQ(res.status, SUCCESS);
   real check[12];
@@ -777,4 +772,25 @@ TEST(MatnTest, test_add_columns) {
   EXPECT_EQ(check[9], 7);
   EXPECT_EQ(check[10], -8);
   EXPECT_EQ(check[11], 9);
+}
+TEST(MatnTest, test_identity) {
+
+  MatN<real, 3, 3> out;
+  auto res = MatN<real, 2, 2>::identity<3>(out);
+  //
+  //
+  EXPECT_EQ(res.status, SUCCESS);
+  real check[9];
+  out(check);
+  //
+
+  EXPECT_EQ(check[0], 1);
+  EXPECT_EQ(check[1], 0);
+  EXPECT_EQ(check[2], 0);
+  EXPECT_EQ(check[3], 0);
+  EXPECT_EQ(check[4], 1);
+  EXPECT_EQ(check[5], 0);
+  EXPECT_EQ(check[6], 0);
+  EXPECT_EQ(check[7], 0);
+  EXPECT_EQ(check[8], 1);
 }

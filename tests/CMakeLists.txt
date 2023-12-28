@@ -17,6 +17,7 @@ add_executable(
     "test_matn.cpp"
     "test_vecn.cpp"
     "test_quaternion.cpp"
+    "test_lu.cpp"
     )
 
 target_link_libraries(${PROJECT_NAME}_Test PRIVATE GTest::GTest ${PROJECT_NAME})
