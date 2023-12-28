@@ -52,11 +52,11 @@ public:
   Quaternion(T c1, const vecn::VecN<T, 3> &vs) {
     coeffs[0] = c1;
     T v_0;
-    vs[0, v_0];
+    vs(0, v_0);
     T v_1;
-    vs[1, v_1];
+    vs(1, v_1);
     T v_2;
-    vs[2, v_2];
+    vs(2, v_2);
     coeffs[1] = v_0;
     coeffs[2] = v_1;
     coeffs[3] = v_2;
@@ -145,7 +145,6 @@ public:
   }
   OpResult divide(T t, vecn::VecN<T, 3> &out) const {
     if (t == 0) {
-
       return OpResult(__LINE__, __FILE__, __FUNCTION__,
                       "divide", ARG_ERROR);
     }
@@ -189,17 +188,17 @@ public:
     return vec.divide(t, out);
   }
   /** dot product and cross product for two vec3*/
-  OpResult dot(vecn::VecN<T, 3> t, T &out) const {
+  OpResult dot(const vecn::VecN<T, 3> &t, T &out) const {
 
     vecn::VecN<T, 3> vec;
     vector(vec);
     return vec.dot(t, out);
   }
-  OpResult cross(vecn::VecN<T, 3> t,
+  OpResult cross(const vecn::VecN<T, 3> &t,
                  vecn::VecN<T, 3> &out) const {
     vecn::VecN<T, 3> vec;
     vector(vec);
-    return vec.cross(t, out);
+    return vecn::cross(vec, t, out);
   }
 
   /** Quaternion product as it is shown by Vince 2011 p.
@@ -214,18 +213,21 @@ public:
     // s_a, s_b, a, b
     T s_a = static_cast<T>(0);
     auto res = scalar(s_a);
-    if (res.status != SUCCESS)
+    if (res.status != SUCCESS) {
       return res;
+    }
 
     T s_b = static_cast<T>(0);
     res = q_b.scalar(s_b);
-    if (res.status != SUCCESS)
+    if (res.status != SUCCESS) {
       return res;
+    }
 
     vecn::VecN<T, 3> a;
     res = vector(a);
-    if (res.status != SUCCESS)
+    if (res.status != SUCCESS) {
       return res;
+    }
 
     vecn::VecN<T, 3> b;
     res = q_b.vector(b);
@@ -243,21 +245,23 @@ public:
 
     // a \times b
     vecn::VecN<T, 3> cross_ab;
-    res = a.cross(b, cross_ab);
-    if (res.status != SUCCESS)
+    res = vecn::cross(a, b, cross_ab);
+    if (res.status != SUCCESS) {
       return res;
+    }
 
     // s_a * b + s_b * a + a \times b
-    vecn::VecN<T, 3> tout;
+    T out_v[3];
+    T b_s[3];
+    T a_s[3];
+    T ab_s[3];
+    b(b_s);
+    a(a_s);
+    cross_ab(ab_s);
     for (std::size_t i = 0; i < 3; i++) {
-      T b_i;
-      b[i, b_i];
-      T a_i;
-      a[i, a_i];
-      T c_i;
-      cross_ab[i, c_i];
-      tout(i, s_a * b_i + s_b * a_i + c_i);
+      out_v[i] = s_a * b_s[i] + s_b * a_s[i] + ab_s[i];
     }
+    vecn::VecN<T, 3> tout(out_v);
     out = Quaternion(s_ab - a_dot_b, tout);
     return OpResult(__LINE__, __FILE__, __FUNCTION__,
                     "hamilton_product", SUCCESS);
@@ -318,31 +322,20 @@ public:
    */
   OpResult inversed(Quaternion<T> &out) const {
     //
-    T det_out = static_cast<T>(0);
-    auto res = det(det_out);
-    if (res.status != SUCCESS)
-      return res;
+    T q_norm = static_cast<T>(0);
+    auto res = norm_squared(q_norm);
+    if (res.status != SUCCESS) {
+      return res; 
+    }
 
-    T inv_mag2 = static_cast<T>(1.0) / det_out;
     Quaternion conj;
-
     res = conjugate(conj);
-    if (res.status != SUCCESS)
+    if (res.status != SUCCESS) {
       return res;
-
-    T conj_scalar = static_cast<T>(0);
-    res = conj.scalar(conj_scalar);
-    if (res.status != SUCCESS)
-      return res;
-
-    T spart = conj_scalar * inv_mag2;
-
-    vecn::VecN<T, 3> vs;
-    res = multiply(inv_mag2, vs);
-    if (res.status != SUCCESS)
-      return res;
-
-    out = Quaternion(spart, vs);
+    }
+    T c_s; vecn::VecN<T, 3> c_v; conj(c_s); conj(c_v); vecn::VecN<T,3> v; 
+    c_v.divide(q_norm, v);
+    out = Quaternion(c_s/ q_norm, v);
     return OpResult(__LINE__, __FILE__, __FUNCTION__,
                     "inversed", SUCCESS);
   }
@@ -419,7 +412,7 @@ public:
     Graphics p. 69
    */
   OpResult norm(T &out) const {
-    auto res = det(out);
+    auto res = norm_squared(out);
 
     if (res.status != SUCCESS)
       return res;
@@ -434,7 +427,7 @@ public:
     \brief from Vince 2011 - Quaternions for Computer
     Graphics p. 25
    */
-  OpResult determinant(T &out) const {
+  OpResult norm_squared(T &out) const {
     T s = static_cast<T>(0);
     auto res = scalar(s);
     if (res.status != SUCCESS)
@@ -446,19 +439,18 @@ public:
 
     T a = s * s;
     T b;
-    res = vec.dot(vec, b);
+    T v[3];
+    vec(v);
+    res = vec.dot(v, b);
     if (res.status != SUCCESS)
       return res;
     out = a + b;
     return OpResult(__LINE__, __FILE__, __FUNCTION__,
-                    "determinant", SUCCESS);
+                    "norm_squared", SUCCESS);
   }
-  OpResult det(T &out) const { return determinant(out); }
   OpResult magnitude(T &out) const { return norm(out); }
 
 private:
-  T coeffs[4];
-
   template <typename Func>
   opstatus_t apply_el(const Quaternion &q, const Func &fn,
                       Quaternion<T> &out) const {
@@ -466,22 +458,28 @@ private:
     scalar(s);
     vecn::VecN<T, 3> v;
     vector(v);
+    T vs[3];
+    v(vs);
+
+    //
     T q_s;
     q.scalar(q_s);
     vecn::VecN<T, 3> q_v;
     q.vector(q_v);
-    out(fn(s, q_s));
-    vecn::VecN<T, 3> ovec;
+    T qs[3];
+    q_v(qs);
+    //
+    T rs[3];
     for (std::size_t i = 0; i < 3; ++i) {
-      T v_i;
-      v[i, v_i];
-      T q_i;
-      q_v[i, q_i];
-      ovec(i, fn(v_i, q_i));
+      rs[i] = fn(vs[i], qs[i]);
     }
-    out(ovec);
+    T r = fn(s, q_s);
+    out = Quaternion(r, vecn::VecN<T, 3>(rs));
     return SUCCESS;
   }
+
+  //
+  T coeffs[4];
 };
 
 } // namespace quaternion
