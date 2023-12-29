@@ -3,7 +3,7 @@
 
 #include "lu.hpp"
 #include "matn.hpp"
-#include "opflags.hpp"
+#include "opflags.h"
 #include "quaternion.hpp"
 #include "vecn.hpp"
 
@@ -48,9 +48,9 @@ std::ostream &operator<<(std::ostream &out,
 template <typename T, unsigned int R, unsigned int C = R>
 std::ostream &operator<<(std::ostream &out,
                          const matn::MatN<T, R, C> &m) {
-  std::array<T, R * C> arr;
-  m[arr];
-  for (std::size_t i = 0; i < arr.size(); i++) {
+  T arr[R * C];
+  m(arr);
+  for (std::size_t i = 0; i < (R * C); i++) {
     if (i % C == 0) {
       out << std::endl;
     }
@@ -66,9 +66,9 @@ std::ostream &operator<<(std::ostream &out,
 template <typename T, unsigned int R>
 std::ostream &operator<<(std::ostream &out,
                          const vecn::VecN<T, R> &m) {
-  std::array<T, R> arr;
-  m[arr];
-  for (std::size_t i = 0; i < arr.size(); i++) {
+  T arr[R];
+  m(arr);
+  for (std::size_t i = 0; i < R; i++) {
     if (i % R == 0) {
       out << std::endl;
     }
@@ -84,22 +84,22 @@ std::ostream &operator<<(std::ostream &out,
 template <typename T>
 std::ostream &
 operator<<(std::ostream &out,
-           const quaternion::QuaternionBase<T> &c) {
-  switch (c.base) {
-  case kSCALAR_BASE: {
-    out << "SCALAR_BASE::" << c.r << std::endl;
+           const quaternion::QuaternionBase &b) {
+  switch (b) {
+  case quaternion::kSCALAR: {
+    out << "scalar_base" << std::endl;
     break;
   }
-  case kI: {
-    out << "I_BASE::" << c.r << std::endl;
+  case quaternion::kI: {
+    out << "i_base" << std::endl;
     break;
   }
-  case kJ: {
-    out << "J_BASE::" << c.r << std::endl;
+  case quaternion::kJ: {
+    out << "j_base::" << std::endl;
     break;
   }
-  case kK: {
-    out << "K_BASE::" << c.r << std::endl;
+  case quaternion::kK: {
+    out << "k_base::" << std::endl;
     break;
   }
   }
@@ -110,19 +110,19 @@ std::ostream &
 operator<<(std::ostream &out,
            const quaternion::QuaternionComponent<T> &c) {
   switch (c.base) {
-  case kSCALAR_BASE: {
+  case quaternion::kSCALAR: {
     out << c.r << std::endl;
     break;
   }
-  case kI: {
+  case quaternion::kI: {
     out << c.r << "i";
     break;
   }
-  case kJ: {
+  case quaternion::kJ: {
     out << c.r << "j";
     break;
   }
-  case kK: {
+  case quaternion::kK: {
     out << c.r << "k";
     break;
   }
@@ -134,49 +134,48 @@ template <typename T>
 std::ostream &
 operator<<(std::ostream &out,
            const quaternion::Quaternion<T> &q) {
-  quaternion::QuaternionComponent<T> c(kSCALAR_BASE, 0);
-  q[c];
+  quaternion::QuaternionComponent<T> c;
+  q(quaternion::kSCALAR, c);
   out << c << " + ";
-  c = quaternion::QuaternionComponent<T>(kI, 0);
-  q[c];
+  q(quaternion::kI, c);
   out << c << " + ";
-  c = quaternion::QuaternionComponent<T>(kJ, 0);
-  q[c];
+  q(quaternion::kJ, c);
   out << c << " + ";
-  c = quaternion::QuaternionComponent<T>(kK, 0);
-  q[c];
+  q(quaternion::kK, c);
   out << c << std::endl;
   return out;
 }
 
 template <typename T>
-matn::MatN<T, 3, 3>
-to_skew_mat(const vecn::VecN<T, 3> &vec) {
+OpResult to_skew_mat(const vecn::VecN<T, 3> &vec,
+                     matn::MatN<T, 3, 3> &out) {
   //
   T a3;
-  vec[2, a3];
+  vec(2, a3);
   T a2;
-  vec[1, a2];
+  vec(1, a2);
   T a1;
-  vec[0, a1];
+  vec(0, a1);
 
   matn::MatN<T, 3, 3> m;
 
-  std::array<T, 3> c1{0, a3, -a2};
-  std::array<T, 3> c2{-a3, 0, a1};
-  std::array<T, 3> c3{a2, -a1, 0};
+  T c1[] = {0, a3, -a2};
+  T c2[] = {-a3, 0, a1};
+  T c3[] = {a2, -a1, 0};
   m.set_column(0, c1);
   m.set_column(1, c2);
   m.set_column(2, c3);
-  return m;
+  out = m;
+  return OpResult(__LINE__, __FILE__, __FUNCTION__,
+                  "to_skew_mat", SUCCESS);
 }
 
 /**convert quaternion to rotation matrix
   from Vince, 2011, Quaternion ..., p. 123
  */
 template <typename T>
-matn::MatN<T, 3, 3>
-toRotMat3x3(const quaternion::Quaternion<T> &q_in) {
+OpResult toRotMat3x3(const quaternion::Quaternion<T> &q_in,
+                     matn::MatN<T, 3, 3> &out) {
   quaternion::Quaternion<T> q;
   q_in.normalized(q);
   //
@@ -187,45 +186,49 @@ toRotMat3x3(const quaternion::Quaternion<T> &q_in) {
   vecn::VecN<T, 3> xyz;
   q.vector(xyz);
   T x;
-  xyz[0, x];
+  xyz(0, x);
   T y;
-  xyz[1, y];
+  xyz(1, y);
   T z;
-  xyz[2, z];
+  xyz(2, z);
 
   // to rotation matrix
-  T c1_1 = 1 - (2 * (std::pow(y, 2) + std::pow(z, 2)));
+  T c1_1 = 1 - (2 * ((y * y) + (z * z)));
   T c1_2 = 2 * (x * y + s * z);
   T c1_3 = 2 * (x * z - s * y);
   //
   T c2_1 = 2 * (x * y - s * z);
-  T c2_2 = 1 - (2 * (std::pow(x, 2) + std::pow(z, 2)));
+  T c2_2 = 1 - 2 * ((x * x) + (z * z));
   T c2_3 = 2 * (y * z + s * x);
   //
   T c3_1 = 2 * (x * z + s * y);
   T c3_2 = 2 * (y * z - s * x);
-  T c3_3 = 1 - 2 * (std::pow(x, 2) + std::pow(y, 2));
+  T c3_3 = 1 - 2 * ((x * x) + (y * y));
 
-  std::array<T, 3> c1{c1_1, c1_2, c1_3};
-  std::array<T, 3> c2{c2_1, c2_2, c2_3};
-  std::array<T, 3> c3{c3_1, c3_2, c3_3};
+  T c1[] = {c1_1, c1_2, c1_3};
+  T c2[] = {c2_1, c2_2, c2_3};
+  T c3[] = {c3_1, c3_2, c3_3};
   matn::MatN<T, 3, 3> m;
   m.set_column(0, c1);
   m.set_column(1, c2);
   m.set_column(2, c3);
-  return m;
+  out = m;
+  return OpResult(__LINE__, __FILE__, __FUNCTION__,
+                  "toRotMat3x3", SUCCESS);
 }
 
-template <typename T, unsigned int N>
-matn::MatN<T, N, N>
-invert_mat(const matn::MatN<T, N, N> &m) {
+template <typename T, std::size_t N>
+OpResult invert_mat(const matn::MatN<T, N, N> &m,
+                    matn::MatN<T, N, N> &out) {
   //
-  lu::LUdecomp lu(m);
+  lu::LUdecomp<T, N> lu_d(m);
   matn::MatN<T, N, N> B;
-  matn::MatN<T, N, N>::identity(N, B);
+  matn::identity<T, N>(B);
   matn::MatN<T, N, N> inv_m;
-  lu.solve_mat(B, inv_m);
-  return inv_m;
+  lu_d.solve_mat(B, inv_m);
+  out = inv_m;
+  return OpResult(__LINE__, __FILE__, __FUNCTION__,
+                  "invert_mat", SUCCESS);
 }
 
 } // namespace math3d

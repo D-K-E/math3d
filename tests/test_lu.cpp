@@ -129,7 +129,7 @@ TEST(LUTest, test_solve_mat) {
   m.set_column(1, {5, 8, 12});
   m.set_column(2, {1, 1, 1});
   MatN<real, 3, 3> B;
-  MatN<real, 3, 3>::identity<3>(B);
+  identity(B);
   LUdecomp lu_d(m);
   MatN<real, 3, 3> X;
   lu_d.solve_mat<3>(B, X);

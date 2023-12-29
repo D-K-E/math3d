@@ -66,7 +66,7 @@ template <typename T, std::size_t N> struct LUdecomp {
   }
   // tested
   OpResult lower(matn::MatN<T, N, N> &L) const {
-    matn::MatN<T, N, N>::identity(L);
+    matn::identity(L);
     for (std::size_t i = 0; i < (N - 1); ++i) {
       for (std::size_t j = i + 1; j < N; ++j) {
         T udata;
@@ -200,7 +200,7 @@ template <typename T, std::size_t N> struct LUdecomp {
 
   // from Golub and Van Loan 2013, Matrix computations, p.
   // 108
-  template <unsigned int Q>
+  template <std::size_t Q>
   OpResult solve_mat(const matn::MatN<T, N, Q> &B,
                      matn::MatN<T, N, Q> &X) {
     for (std::size_t j = 0; j < Q; ++j) {

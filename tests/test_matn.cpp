@@ -776,7 +776,7 @@ TEST(MatnTest, test_add_columns) {
 TEST(MatnTest, test_identity) {
 
   MatN<real, 3, 3> out;
-  auto res = MatN<real, 2, 2>::identity<3>(out);
+  auto res = identity(out);
   //
   //
   EXPECT_EQ(res.status, SUCCESS);

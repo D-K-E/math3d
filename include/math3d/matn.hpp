@@ -150,16 +150,6 @@ public:
     return OpResult(__LINE__, __FILE__, __FUNCTION__,
                     "zeros", SUCCESS);
   }
-  template <std::size_t N>
-  static OpResult identity(MatN<T, N, N> &out) {
-    MatN<T, N, N> mat;
-    for (std::size_t i = 0; i < N; i++) {
-      mat(make_matn_cell(static_cast<T>(1), i, i));
-    }
-    out = mat;
-    return OpResult(__LINE__, __FILE__, __FUNCTION__,
-                    "identity", SUCCESS);
-  }
   // tested
   template <std::size_t OutRowNb = RowNb,
             std::size_t OutColNb = ColNb>
@@ -641,6 +631,17 @@ private:
                     "apply", SUCCESS);
   }
 };
+
+template <typename T, std::size_t N>
+OpResult identity(MatN<T, N, N> &out) {
+  MatN<T, N, N> mat;
+  for (std::size_t i = 0; i < N; i++) {
+    mat(make_matn_cell(static_cast<T>(1), i, i));
+  }
+  out = mat;
+  return OpResult(__LINE__, __FILE__, __FUNCTION__,
+                  "identity", SUCCESS);
+}
 
 } // namespace matn
 
