@@ -64,3 +64,32 @@ TEST(Math3DTest, test_toRotMat3x3) {
   EXPECT_EQ(std::round(c3[1] * 100.0f) / 100.0f, -0.3f);
   EXPECT_EQ(std::round(c3[2] * 100.0f) / 100.0f, 0.01f);
 }
+
+TEST(Math3DTest, test_debug_check_m_true) {
+  VecN<real, 2> v;
+  std::size_t vsize = 5;
+  OpResult res;
+  CHECK_MATH3D(v(vsize), res);
+  EXPECT_EQ(res.success, true);
+  std::string cname = "v(vsize)";
+  std::string rcname = res.call_name;
+  EXPECT_EQ(rcname, cname);
+}
+
+TEST(MatnTest, test_divide_scalar_value_false_check_macro) {
+
+  real mv[] = {0, 1, 2, 0, 2, 4};
+
+  MatN<real, 2, 3> m(mv);
+  MatN<real, 2, 3> out;
+  auto r = CHECK(m.divide(0, out));
+  EXPECT_EQ(r, false);
+  //
+}
+
+TEST(Math3DTest, test_debug_check_true) {
+  VecN<real, 2> v;
+  std::size_t vsize = 5;
+  bool vflag = CHECK(v(vsize));
+  EXPECT_EQ(vflag, true);
+}

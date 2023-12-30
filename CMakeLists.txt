@@ -2,13 +2,13 @@ cmake_minimum_required(VERSION 3.12)
 
 project("math3d" 
     VERSION 0.1.0
-    DESCRIPTION "A header-only c++ library that provides mostly n dimensional objects tailored for 3d math"
+    DESCRIPTION "A C-ish C++ library with mostly n dimensional objects tailored for 3d math"
     HOMEPAGE_URL "https://github.com/D-K-E/math3d")
 
     
 include(GNUInstallDirs)
 
-add_library(${PROJECT_NAME} "src/opflags.cpp")
+add_library(${PROJECT_NAME} "src/utils.cpp")
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 
@@ -54,3 +54,8 @@ option(BUILD_MATH3D_TESTS "Build test programs" OFF)
 if(BUILD_MATH3D_TESTS)
     add_subdirectory("tests")
 endif(BUILD_MATH3D_TESTS)
+
+option(BUILD_MATH3D_EXAMPLES "Build example programs" OFF)
+if (BUILD_MATH3D_EXAMPLES)
+    add_subdirectory("examples")
+endif(BUILD_MATH3D_EXAMPLES)

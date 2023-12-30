@@ -6,10 +6,6 @@
 #include <cstring>
 #include <functional>
 #include <iostream>
-#include <math.h>
-#include <ostream>
-#include <stdio.h>
-#include <vector>
 
 #include "opflags.h"
 
@@ -55,77 +51,19 @@ public:
       data[i] = 0;
     }
   }
-  MatN(const T (&vd)[RowNb * ColNb]) {
-    memcpy(data, vd, Size * sizeof(T));
-  }
-  MatN(const std::vector<std::vector<T>> &vdata) {
-
-    int rdiff = vdata.size() - RowNb;
-    int cdiff = vdata[0].size() - ColNb;
-    std::size_t i = 0;
-    std::size_t j = 0;
-
-    if (rdiff >= 0 && cdiff >= 0) {
-      // row and col size is bigger than current matrix
-      for (i = 0; i < RowNb; i++) {
-        for (j = 0; j < ColNb; j++) {
-          (*this)(make_matn_cell<T>(vdata[i][j], i, j));
-        }
+  template <size_t N> MatN(const T (&vd)[N]) {
+    if (N == Size) {
+      memcpy(data, vd, Size * sizeof(T));
+    } else if (N < Size) {
+      for (size_t i = 0; i < N; ++i) {
+        data[i] = vd[i];
       }
-    } else if (rdiff < 0 && cdiff >= 0) {
-      // row size smaller col size is bigger than current
-      // matrix
-      for (i = 0; i < RowNb; i++) {
-        for (j = 0; j < ColNb; j++) {
-          T val = static_cast<T>(0);
-          if (i < vdata.size()) {
-            val = vdata[i][j];
-          }
-          (*this)(make_matn_cell<T>(val, i, j));
-        }
-      }
-    } else if (rdiff < 0 && cdiff < 0) {
-      // row and col sizes are smaller than current matrix
-      for (i = 0; i < RowNb; i++) {
-        for (j = 0; j < ColNb; j++) {
-          T val = static_cast<T>(0);
-          if (i < vdata.size() && j < vdata[0].size()) {
-            val = vdata[i][j];
-          }
-          (*this)(make_matn_cell<T>(val, i, j));
-        }
+      for (size_t i = N; i < Size; ++i) {
+        data[i] = 0;
       }
     } else {
-      // row size is bigger and col size is smaller than
-      // current matrix
-      for (i = 0; i < RowNb; i++) {
-        for (j = 0; j < ColNb; j++) {
-          T val = static_cast<T>(0);
-          if (j < vdata[0].size()) {
-            val = vdata[i][j];
-          }
-          (*this)(make_matn_cell<T>(val, i, j));
-        }
-      }
-    }
-    //
-  }
-  MatN(const std::vector<T> &vdata) {
-    int size_nb = vdata.size() - Size;
-    std::size_t i = 0;
-    if (size_nb < 0) {
-      // vector size is smaller than matrix size
-      for (i = 0; i < Size; i++) {
-        if (i < vdata.size()) {
-          (*this)(make_matn_cell<T>(vdata[i], i));
-        } else {
-          (*this)(make_matn_cell<T>(0, i));
-        }
-      }
-    } else {
-      // vector size is bigger than matrix size
-      for (i = 0; i < Size; i++) {
-        (*this)(make_matn_cell<T>(vdata[i], i));
+      for (size_t i = 0; i < Size; ++i) {
+        data[i] = vd[i];
       }
     }
   }

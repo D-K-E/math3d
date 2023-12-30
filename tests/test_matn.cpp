@@ -21,76 +21,9 @@ TEST(MatnTest, test_empty_constructor) {
   EXPECT_EQ(vsize, static_cast<std::size_t>(0));
   EXPECT_EQ(r.status, SUCCESS);
 }
-TEST(MatnTest, test_double_vec_constructor) {
+TEST(MatnTest, test_single_arr_constructor) {
 
-  std::vector<std::vector<real>> mv;
-  std::vector<real> r1 = {0, 1, 2};
-  std::vector<real> r2 = {0, 2, 4};
-  mv.push_back(r1);
-  mv.push_back(r2);
-
-  MatN<real, 2, 3> m(mv);
-  std::size_t vsize = 0;
-
-  auto r = m(vsize);
-  EXPECT_EQ(r.status, SUCCESS);
-  EXPECT_EQ(vsize, static_cast<std::size_t>(6));
-
-  std::size_t rows, cols;
-  r = m(rows, cols);
-  EXPECT_EQ(cols, static_cast<std::size_t>(3));
-  EXPECT_EQ(r.status, SUCCESS);
-
-  EXPECT_EQ(rows, static_cast<std::size_t>(2));
-  EXPECT_EQ(r.status, SUCCESS);
-
-  real arr[6];
-  r = m(arr);
-  EXPECT_EQ(r.status, SUCCESS);
-  EXPECT_DOUBLE_EQ(arr[0], static_cast<real>(0));
-  EXPECT_DOUBLE_EQ(arr[1], static_cast<real>(1));
-  EXPECT_DOUBLE_EQ(arr[2], static_cast<real>(2));
-  EXPECT_DOUBLE_EQ(arr[3], static_cast<real>(0));
-  EXPECT_DOUBLE_EQ(arr[4], static_cast<real>(2));
-  EXPECT_DOUBLE_EQ(arr[5], static_cast<real>(4));
-}
-TEST(MatnTest, test_double_vec_constructor_bigger_row) {
-
-  std::vector<std::vector<real>> mv;
-  std::vector<real> r1 = {0, 1, 2};
-  std::vector<real> r2 = {0, 2, 4};
-  std::vector<real> r3 = {1, 2, 4};
-  mv.push_back(r1);
-  mv.push_back(r2);
-  mv.push_back(r3);
-
-  MatN<real, 2, 3> m(mv);
-  std::size_t vsize = 0;
-
-  auto r = m(vsize);
-  EXPECT_EQ(vsize, static_cast<std::size_t>(6));
-  EXPECT_EQ(r.status, SUCCESS);
-
-  std::size_t rows, cols;
-  r = m(rows, cols);
-  EXPECT_EQ(cols, static_cast<std::size_t>(3));
-  EXPECT_EQ(r.status, SUCCESS);
-
-  EXPECT_EQ(rows, static_cast<std::size_t>(2));
-
-  real arr[6];
-  r = m(arr);
-  EXPECT_EQ(r.status, SUCCESS);
-  EXPECT_DOUBLE_EQ(arr[0], static_cast<real>(0));
-  EXPECT_DOUBLE_EQ(arr[1], static_cast<real>(1));
-  EXPECT_DOUBLE_EQ(arr[2], static_cast<real>(2));
-  EXPECT_DOUBLE_EQ(arr[3], static_cast<real>(0));
-  EXPECT_DOUBLE_EQ(arr[4], static_cast<real>(2));
-  EXPECT_DOUBLE_EQ(arr[5], static_cast<real>(4));
-}
-TEST(MatnTest, test_single_vec_constructor) {
-
-  std::vector<real> mv = {0, 1, 2, 0, 2, 4};
+  real mv[] = {0, 1, 2, 0, 2, 4};
 
   MatN<real, 2, 3> m(mv);
   std::size_t vsize = 0;
@@ -116,62 +49,6 @@ TEST(MatnTest, test_single_vec_constructor) {
   EXPECT_DOUBLE_EQ(arr[3], static_cast<real>(0));
   EXPECT_DOUBLE_EQ(arr[4], static_cast<real>(2));
   EXPECT_DOUBLE_EQ(arr[5], static_cast<real>(4));
-}
-TEST(MatnTest, test_single_vec_constructor_bigger) {
-
-  std::vector<real> mv = {0, 1, 2, 0, 2, 4, 56, 35};
-
-  MatN<real, 2, 3> m(mv);
-  std::size_t vsize = 0;
-
-  auto r = m(vsize);
-  EXPECT_EQ(vsize, static_cast<std::size_t>(6));
-  EXPECT_EQ(r.status, SUCCESS);
-
-  std::size_t rows, cols;
-  r = m(rows, cols);
-  EXPECT_EQ(cols, static_cast<std::size_t>(3));
-  EXPECT_EQ(r.status, SUCCESS);
-
-  EXPECT_EQ(rows, static_cast<std::size_t>(2));
-
-  real arr[6];
-  r = m(arr);
-  EXPECT_EQ(r.status, SUCCESS);
-  EXPECT_DOUBLE_EQ(arr[0], static_cast<real>(0));
-  EXPECT_DOUBLE_EQ(arr[1], static_cast<real>(1));
-  EXPECT_DOUBLE_EQ(arr[2], static_cast<real>(2));
-  EXPECT_DOUBLE_EQ(arr[3], static_cast<real>(0));
-  EXPECT_DOUBLE_EQ(arr[4], static_cast<real>(2));
-  EXPECT_DOUBLE_EQ(arr[5], static_cast<real>(4));
-}
-TEST(MatnTest, test_single_vec_constructor_smaller) {
-
-  std::vector<real> mv = {0, 1, 2};
-
-  MatN<real, 2, 3> m(mv);
-  std::size_t vsize = 0;
-
-  auto r = m(vsize);
-  EXPECT_EQ(vsize, static_cast<std::size_t>(6));
-  EXPECT_EQ(r.status, SUCCESS);
-
-  std::size_t rows, cols;
-  r = m(rows, cols);
-  EXPECT_EQ(cols, static_cast<std::size_t>(3));
-  EXPECT_EQ(r.status, SUCCESS);
-
-  EXPECT_EQ(rows, static_cast<std::size_t>(2));
-
-  real arr[6];
-  r = m(arr);
-  EXPECT_EQ(r.status, SUCCESS);
-  EXPECT_DOUBLE_EQ(arr[0], static_cast<real>(0));
-  EXPECT_DOUBLE_EQ(arr[1], static_cast<real>(1));
-  EXPECT_DOUBLE_EQ(arr[2], static_cast<real>(2));
-  EXPECT_DOUBLE_EQ(arr[3], static_cast<real>(0));
-  EXPECT_DOUBLE_EQ(arr[4], static_cast<real>(0));
-  EXPECT_DOUBLE_EQ(arr[5], static_cast<real>(0));
 }
 /*! @}
  */
@@ -296,7 +173,7 @@ TEST(MatnTest, test_get_size) {
 }
 TEST(MatnTest, test_add_scalar_value) {
 
-  std::vector<real> mv = {0, 1, 2, 0, 2, 4};
+  real mv[] = {0, 1, 2, 0, 2, 4};
 
   MatN<real, 2, 3> m(mv);
   MatN<real, 2, 3> out;
@@ -319,7 +196,7 @@ TEST(MatnTest, test_add_scalar_value) {
 }
 TEST(MatnTest, test_add_mat_value) {
 
-  std::vector<real> mv = {0, 1, 2, 0, 2, 4};
+  real mv[] = {0, 1, 2, 0, 2, 4};
 
   MatN<real, 2, 3> m(mv);
   MatN<real, 2, 3> out;
@@ -344,7 +221,7 @@ TEST(MatnTest, test_add_mat_value) {
 }
 TEST(MatnTest, test_subtract_scalar_value) {
 
-  std::vector<real> mv = {0, 1, 2, 0, 2, 4};
+  real mv[] = {0, 1, 2, 0, 2, 4};
 
   MatN<real, 2, 3> m(mv);
   MatN<real, 2, 3> out;
@@ -367,12 +244,12 @@ TEST(MatnTest, test_subtract_scalar_value) {
 }
 TEST(MatnTest, test_subtract_mat_value) {
 
-  std::vector<real> mv = {0, 1, 2, 0, 2, 4};
+  real mv[] = {0, 1, 2, 0, 2, 4};
 
   MatN<real, 2, 3> m(mv);
   MatN<real, 2, 3> out;
 
-  std::vector<real> mv2 = {0, 1, 2, 0, 2, 4};
+  real mv2[] = {0, 1, 2, 0, 2, 4};
   MatN<real, 2, 3> tout(mv2);
   // filled matrix
   auto r = m.subtract(tout, out);
@@ -394,7 +271,7 @@ TEST(MatnTest, test_subtract_mat_value) {
 }
 TEST(MatnTest, test_hadamard_product_scalar_value) {
 
-  std::vector<real> mv = {0, 1, 2, 0, 2, 4};
+  real mv[] = {0, 1, 2, 0, 2, 4};
 
   MatN<real, 2, 3> m(mv);
   MatN<real, 2, 3> out;
@@ -417,12 +294,12 @@ TEST(MatnTest, test_hadamard_product_scalar_value) {
 }
 TEST(MatnTest, test_hadamard_product_mat_value) {
 
-  std::vector<real> mv = {0, 1, 2, 0, 2, 4};
+  real mv[] = {0, 1, 2, 0, 2, 4};
 
   MatN<real, 2, 3> m(mv);
   MatN<real, 2, 3> out;
 
-  std::vector<real> mv2 = {0, 1, 2, 0, 2, 4};
+  real mv2[] = {0, 1, 2, 0, 2, 4};
   MatN<real, 2, 3> tout(mv2);
   // filled matrix
   auto r = m.hadamard_product(tout, out);
@@ -444,7 +321,7 @@ TEST(MatnTest, test_hadamard_product_mat_value) {
 }
 TEST(MatnTest, test_divide_scalar_value_false) {
 
-  std::vector<real> mv = {0, 1, 2, 0, 2, 4};
+  real mv[] = {0, 1, 2, 0, 2, 4};
 
   MatN<real, 2, 3> m(mv);
   MatN<real, 2, 3> out;
@@ -452,24 +329,14 @@ TEST(MatnTest, test_divide_scalar_value_false) {
   EXPECT_EQ(r.status, ARG_ERROR);
   //
 }
-TEST(MatnTest, test_divide_scalar_value_false_check_macro) {
-
-  std::vector<real> mv = {0, 1, 2, 0, 2, 4};
-
-  MatN<real, 2, 3> m(mv);
-  MatN<real, 2, 3> out;
-  auto r = CHECK(m.divide(0, out));
-  EXPECT_EQ(r, false);
-  //
-}
 TEST(MatnTest, test_divide_mat_false) {
 
-  std::vector<real> mv = {0, 1, 2, 0, 2, 4};
+  real mv[] = {0, 1, 2, 0, 2, 4};
 
   MatN<real, 2, 3> m(mv);
   MatN<real, 2, 3> out;
 
-  std::vector<real> mv2 = {0, 1, 2, 0, 2, 4};
+  real mv2[] = {0, 1, 2, 0, 2, 4};
   MatN<real, 2, 3> tout(mv2);
   // filled matrix
   auto r = m.divide(tout, out);
@@ -478,7 +345,7 @@ TEST(MatnTest, test_divide_mat_false) {
 }
 TEST(MatnTest, test_divide_scalar_value_true) {
 
-  std::vector<real> mv = {0, 1, 2, 0, 2, 4};
+  real mv[] = {0, 1, 2, 0, 2, 4};
 
   MatN<real, 2, 3> m(mv);
   MatN<real, 2, 3> out;
@@ -501,12 +368,12 @@ TEST(MatnTest, test_divide_scalar_value_true) {
 }
 TEST(MatnTest, test_divide_mat_true) {
 
-  std::vector<real> mv = {0, 1, 2, 0, 2, 4};
+  real mv[] = {0, 1, 2, 0, 2, 4};
 
   MatN<real, 2, 3> m(mv);
   MatN<real, 2, 3> out;
 
-  std::vector<real> mv2 = {1, 1, 2, 1, 2, 4};
+  real mv2[] = {1, 1, 2, 1, 2, 4};
   MatN<real, 2, 3> tout(mv2);
   // filled matrix
   auto r = m.divide(tout, out);
@@ -531,8 +398,8 @@ TEST(MatnTest, test_multiply_mat) {
   // values from S. Lang, Introduction to Linear Algebra,
   // 1986, p. 48
 
-  std::vector<real> Amat_values = {2, 1, 5, 1, 3, 2};
-  std::vector<real> Bmat_values = {3, 4, -1, 2, 2, 1};
+  real Amat_values[] = {2, 1, 5, 1, 3, 2};
+  real Bmat_values[] = {3, 4, -1, 2, 2, 1};
 
   MatN<real, 2, 3> A(Amat_values);
   MatN<real, 3, 2> B(Bmat_values);
@@ -625,7 +492,7 @@ TEST(MatnTest, test_multiply_scalar) {
   // values from S. Lang, Introduction to Linear Algebra,
   // 1986, p. 48
 
-  std::vector<real> Amat_values = {2, 1, 5, 1, 3, 2};
+  real Amat_values[] = {2, 1, 5, 1, 3, 2};
   real B = 2;
 
   MatN<real, 2, 3> A(Amat_values);
@@ -650,8 +517,8 @@ TEST(MatnTest, test_dot_mat) {
   // values from S. Lang, Introduction to Linear Algebra,
   // 1986, p. 48
 
-  std::vector<real> Amat_values = {2, 1, 5, 1, 3, 2};
-  std::vector<real> Bmat_values = {3, 4, -1, 2, 2, 1};
+  real Amat_values[] = {2, 1, 5, 1, 3, 2};
+  real Bmat_values[] = {3, 4, -1, 2, 2, 1};
 
   MatN<real, 2, 3> A(Amat_values);
   MatN<real, 3, 2> B(Bmat_values);
@@ -675,7 +542,7 @@ TEST(MatnTest, test_dot_scalar) {
   // values from S. Lang, Introduction to Linear Algebra,
   // 1986, p. 48
 
-  std::vector<real> Amat_values = {2, 1, 5, 1, 3, 2};
+  real Amat_values[] = {2, 1, 5, 1, 3, 2};
   real B = 2;
 
   MatN<real, 2, 3> A(Amat_values);

@@ -20,18 +20,12 @@ TEST(VecNTest, test_empty_constructor) {
 }
 
 TEST(VecNTest, test_vector_constructor) {
-  real tvec[5];
   real v1 = static_cast<real>(-21);
   real v2 = static_cast<real>(1);
   real v3 = static_cast<real>(2);
   real v4 = static_cast<real>(1.53);
   real v5 = static_cast<real>(3);
-  tvec[0] = v1;
-  tvec[1] = v2;
-  tvec[2] = v3;
-  tvec[3] = v4;
-  tvec[4] = v5;
-  VecN<real, 5> v(tvec);
+  VecN<real, 5> v({v1, v2, v3, v4, v5});
   real t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0, t6 = 0;
   // test size
   std::size_t vsize = 6156;
@@ -101,23 +95,6 @@ TEST(VecNTest, test_vecn_flag_fn_name) {
   const std::string fname = vflag.fn_name;
   const std::string compval = "operator()";
   EXPECT_EQ(fname, compval);
-}
-TEST(VecNTest, test_debug_check_true) {
-  VecN<real, 2> v;
-  std::size_t vsize = 5;
-  bool vflag = CHECK(v(vsize));
-  EXPECT_EQ(vflag, true);
-}
-
-TEST(VecNTest, test_debug_check_m_true) {
-  VecN<real, 2> v;
-  std::size_t vsize = 5;
-  OpResult res = v(vsize);
-  CHECK_MATH3D(v(vsize), res);
-  EXPECT_EQ(res.success, true);
-  std::string cname = "v(vsize)";
-  std::string rcname = res.call_name;
-  EXPECT_EQ(rcname, cname);
 }
 
 /*! @} */
