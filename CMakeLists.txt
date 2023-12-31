@@ -50,12 +50,12 @@ install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/math3d DESTINATION include)
 
-option(BUILD_MATH3D_TESTS "Build test programs" OFF)
-if(BUILD_MATH3D_TESTS)
+option(MATH3D_BUILD_TESTS "Build test programs" OFF)
+if(MATH3D_BUILD_TESTS)
     add_subdirectory("tests")
-endif(BUILD_MATH3D_TESTS)
+endif(MATH3D_BUILD_TESTS)
 
-option(BUILD_MATH3D_EXAMPLES "Build example programs" OFF)
-if (BUILD_MATH3D_EXAMPLES)
+option(MATH3D_BUILD_EXAMPLES "Build example programs" OFF)
+if (MATH3D_BUILD_EXAMPLES)
     add_subdirectory("examples")
-endif(BUILD_MATH3D_EXAMPLES)
+endif(MATH3D_BUILD_EXAMPLES)

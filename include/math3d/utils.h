@@ -110,6 +110,7 @@ OpResult INFO_VERBOSE(const OpResult &res);
 /**Checks if operation was successful*/
 #define CHECK_MATH3D(call, res)                            \
   do {                                                     \
+    res = call;                                            \
     res.call_name = #call;                                 \
     res.line_info = __LINE__;                              \
     res.file_name = __FILE__;                              \
@@ -118,6 +119,7 @@ OpResult INFO_VERBOSE(const OpResult &res);
 /**Prints information about the operation*/
 #define INFO_MATH3D(call, res)                             \
   do {                                                     \
+    res = call;                                            \
     res.call_name = #call;                                 \
     res.line_info = __LINE__;                              \
     res.file_name = __FILE__;                              \
